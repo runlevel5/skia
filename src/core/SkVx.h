@@ -50,6 +50,8 @@
         #include <arm_neon.h>
     #elif defined(__wasm_simd128__)
         #include <wasm_simd128.h>
+    #elif defined(SK_CPU_PPC) && defined(__VSX__)
+        #include <altivec.h>
     #elif SK_CPU_LSX_LEVEL >= SK_CPU_LSX_LEVEL_LASX
         #include <lasxintrin.h>
         #include <lsxintrin.h>
@@ -507,6 +509,14 @@ SINT Vec<N,T> if_then_else(const Vec<N,M<T>>& cond, const Vec<N,T>& t, const Vec
                                               sk_bit_cast<uint8x16_t>(e)));
     }
 #endif
+#if SKVX_USE_SIMD && defined(SK_CPU_PPC) && defined(__VSX__)
+    if constexpr (N*sizeof(T) == 16) {
+        return sk_bit_cast<Vec<N,T>>(
+                vec_sel(sk_bit_cast<__vector unsigned char>(e),
+                        sk_bit_cast<__vector unsigned char>(t),
+                        sk_bit_cast<__vector unsigned char>(cond)));
+    }
+#endif
 #if SKVX_USE_SIMD && SK_CPU_LSX_LEVEL >= SK_CPU_LSX_LEVEL_LASX
     if constexpr (N*sizeof(T) == 32) {
         return sk_bit_cast<Vec<N,T>>(__lasx_xvbitsel_v(sk_bit_cast<__m256i>(e),
@@ -578,6 +588,11 @@ SINT bool any(const Vec<N,T>& x) {
         return retv[0] != 0b0000;
     }
 #endif
+#if SKVX_USE_SIMD && defined(SK_CPU_PPC) && defined(__VSX__)
+    if constexpr (N*sizeof(T) == 16) {
+        return vec_any_ne(sk_bit_cast<__vector unsigned int>(x), vec_splats(0u));
+    }
+#endif
     return any(x.lo)
         || any(x.hi);
 }
@@ -621,6 +636,11 @@ SINT bool all(const Vec<N,T>& x) {
         return retv[0] == 0b1111;
     }
 #endif
+#if SKVX_USE_SIMD && defined(SK_CPU_PPC) && defined(__VSX__)
+    if constexpr (N*sizeof(T) == 16) {
+        return vec_all_ne(sk_bit_cast<__vector unsigned int>(x), vec_splats(0u));
+    }
+#endif
     return all(x.lo)
         && all(x.hi);
 }
@@ -645,8 +665,22 @@ SIT  T max(const Vec<1,T>& x) { return x.val; }
 SINT T min(const Vec<N,T>& x) { return std::min(min(x.lo), min(x.hi)); }
 SINT T max(const Vec<N,T>& x) { return std::max(max(x.lo), max(x.hi)); }
 
-SINT Vec<N,T> min(const Vec<N,T>& x, const Vec<N,T>& y) { return naive_if_then_else(y < x, y, x); }
-SINT Vec<N,T> max(const Vec<N,T>& x, const Vec<N,T>& y) { return naive_if_then_else(x < y, y, x); }
+SINT Vec<N,T> min(const Vec<N,T>& x, const Vec<N,T>& y) {
+#if SKVX_USE_SIMD && defined(SK_CPU_PPC) && defined(__VSX__)
+    if constexpr (N*sizeof(T) == 16) {
+        return sk_bit_cast<Vec<N,T>>(vec_min(to_vext(x), to_vext(y)));
+    }
+#endif
+    return naive_if_then_else(y < x, y, x);
+}
+SINT Vec<N,T> max(const Vec<N,T>& x, const Vec<N,T>& y) {
+#if SKVX_USE_SIMD && defined(SK_CPU_PPC) && defined(__VSX__)
+    if constexpr (N*sizeof(T) == 16) {
+        return sk_bit_cast<Vec<N,T>>(vec_max(to_vext(x), to_vext(y)));
+    }
+#endif
+    return naive_if_then_else(x < y, y, x);
+}
 
 SINTU Vec<N,T> min(const Vec<N,T>& x, U y) { return min(x, Vec<N,T>(y)); }
 SINTU Vec<N,T> max(const Vec<N,T>& x, U y) { return max(x, Vec<N,T>(y)); }
