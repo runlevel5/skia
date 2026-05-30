@@ -68,7 +68,7 @@
     }
 #endif
 
-#if defined(SK_CPU_PPC) && defined(__VSX__)
+#if defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     #include <altivec.h>
 
     // Native VSX/AltiVec port of SkPMSrcOver_SSE2.
@@ -213,7 +213,7 @@ inline void blit_row_s32a_opaque(SkPMColor* dst, const SkPMColor* src, int len, 
     }
 #endif
 
-#if defined(SK_CPU_PPC) && defined(__VSX__)
+#if defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     while (len >= 4) {
         __vector unsigned char vsrc = vec_xl(0, (const unsigned char*)src);
         __vector unsigned char vdst = vec_xl(0, (const unsigned char*)dst);

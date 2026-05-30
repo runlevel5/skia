@@ -84,7 +84,7 @@ SI float reciprocal_alpha(float a) {
     auto q = F4{1.0f} / vA;
     return _mm_and_ps(sk_bit_cast<__m128>(vA != F4{0.0f}), q)[0];
 }
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
 // -- VSX -- Harden against timing attacks.
 // vec_splats / vec_div / vec_cmpgt / vec_and each map to a single VSX op on
 // both GCC and Clang. vec_cmpgt(vA, 0) is exact for the non-negative-alpha
@@ -1108,7 +1108,7 @@ void rgbA_to_BGRA(uint32_t* dst, const uint32_t* src, int count) {
     rgbA_to_BGRA_portable(dst, src, count);
 }
 
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
 // -- VSX -- Native Power VSX/AltiVec ports of the SSSE3 swizzlers below.
 // Each _mm_* operation is replaced by the corresponding vec_* sequence per
 // the GCC ppc_wrappers translation pattern (vec_mergeh/l, vec_perm, and the
@@ -1961,7 +1961,7 @@ static void gray_to_RGB1_portable(uint32_t dst[], const uint8_t* src, int count)
         }
         gray_to_RGB1_portable(dst, src, count);
     }
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     void gray_to_RGB1(uint32_t dst[], const uint8_t* src, int count) {
         const __vector unsigned char alphas = vec_splats((unsigned char)0xFF);
         while (count >= 16) {
@@ -2184,7 +2184,7 @@ static void RGB_to_BGR1_portable(uint32_t dst[], const uint8_t* src, int count) 
     void RGB_to_BGR1(uint32_t dst[], const uint8_t* src, int count) {
         insert_alpha_should_swaprb(true, dst, src, count);
     }
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     static void insert_alpha_should_swaprb(bool kSwapRB,
                                            uint32_t dst[], const uint8_t* src, int count) {
         // alphaMask = 0xFF000000 per 32-bit lane -> bytes (in LE memory layout) are

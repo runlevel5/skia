@@ -81,7 +81,7 @@ using NoCtx = const void*;
     #define SKRP_CPU_SCALAR
 #elif defined(SK_ARM_HAS_NEON)
     #define SKRP_CPU_NEON
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     #define SKRP_CPU_VSX
 #elif SK_CPU_X64_LEVEL >= SK_CPU_X64_LEVEL_ML4
     #define SKRP_CPU_ML4
