@@ -992,6 +992,26 @@ SIN Vec<N,uint16_t> mulhi(const Vec<N,uint16_t>& x,
     } else { // N > 8
         return join(mulhi(x.lo, y.lo), mulhi(x.hi, y.hi));
     }
+#elif SKVX_USE_SIMD && defined(SK_CPU_PPC) && defined(__VSX__)
+    if constexpr (N == 8) {
+        // u16*u16 -> u32 even/odd products (vmuleuh/vmulouh), then gather the
+        // high 16 bits of each back into sequential lanes. Same idiom as the
+        // VSX scale() in SkSwizzler_opts.
+        __vector unsigned short xs = sk_bit_cast<__vector unsigned short>(x);
+        __vector unsigned short ys = sk_bit_cast<__vector unsigned short>(y);
+        __vector unsigned int even = vec_vmuleuh(xs, ys);
+        __vector unsigned int odd  = vec_vmulouh(xs, ys);
+        const __vector unsigned char hi = {
+            0x02,0x03, 0x12,0x13,  0x06,0x07, 0x16,0x17,
+            0x0A,0x0B, 0x1A,0x1B,  0x0E,0x0F, 0x1E,0x1F
+        };
+        return sk_bit_cast<Vec<8,uint16_t>>(
+            vec_perm((__vector unsigned char)even, (__vector unsigned char)odd, hi));
+    } else if constexpr (N < 8) {
+        return mulhi(join(x,x), join(y,y)).lo;
+    } else { // N > 8
+        return join(mulhi(x.lo, y.lo), mulhi(x.hi, y.hi));
+    }
 #else
     return skvx::cast<uint16_t>(mull(x, y) >> 16);
 #endif

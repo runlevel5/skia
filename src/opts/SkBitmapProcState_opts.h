@@ -29,7 +29,7 @@
     #include <lasxintrin.h>
 #elif SK_CPU_LSX_LEVEL >= SK_CPU_LSX_LEVEL_LSX
     #include <lsxintrin.h>
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     #include <altivec.h>
 #endif
 
@@ -262,7 +262,7 @@ static void decode_packed_coordinates_and_weight(U32 packed, Out* v0, Out* v1, O
         }
     }
 
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
 
     // Helper: scalar uint32_t -> 16-byte vector with x in low 32 bits, zero elsewhere.
     // Equivalent of x86's _mm_cvtsi32_si128.

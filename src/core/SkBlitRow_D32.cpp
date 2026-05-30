@@ -517,7 +517,7 @@ static void blit_row_s32_opaque(SkPMColor* dst,
         }
     }
 
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     #include <altivec.h>
 
     // dst + (((src - dst) * src_scale) >> 8), splayed into 16-bit lanes; the

@@ -480,7 +480,7 @@ static inline SkPMColor blend_lcd16_opaque(int srcR, int srcG, int srcB,
         }
     }
 
-#elif defined(SK_CPU_PPC) && defined(__VSX__)
+#elif defined(SK_CPU_PPC) && defined(__VSX__) && defined(SK_CPU_LENDIAN)
     #include <altivec.h>
 
     // Native VSX/AltiVec port of the SSE2 LCD-subpixel blend block below.
